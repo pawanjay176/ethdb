@@ -12,9 +12,23 @@ export const getWeb3 = () =>
       
   });
 
-export async function createdb () {
+export async function initializeTables () {
+  let createTransactions = `create table if not exists transactions(
+    transactionHash varchar(66) primary key,
+    nonce INT(32) not null,
+    blockHash varchar(66) not null,
+    blockNumber INT(32) not null,
+    transactionIndex INT(32) not null,
+    fromAdd varchar(42) not null,
+    toAdd varchar(42),
+    value varchar(34) not null,
+    gasPrice varchar(32) not null,
+    gas INT(32) not null,
+    input text not null
+)`;
+
   try {
-    var result = await pool.query('CREATE DATABASE ethdb')
+    var res = await pool.query(createTransactions);
   } catch(err) {
     console.log(err);
   }
