@@ -6,7 +6,7 @@ require('dotenv').config()
 export const getWeb3 = () =>
   new Promise((resolve, reject) => {
       // Using websockets as http provider doesn't have support for subscriptions
-      const provider = new Web3.providers.WebsocketProvider(process.env.INFURA_URL);
+      const provider = new Web3.providers.WebsocketProvider("wss://kovan.infura.io/ws");
       let web3 = new Web3(provider);
       resolve(web3);
       

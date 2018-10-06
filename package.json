@@ -5,7 +5,7 @@
     "babel-node": "babel-node --presets=latest",
     "client": "cd client && yarn start",
     "server": "nodemon server.js --exec babel-node --presets es2015,stage-2",
-    "dev": "concurrently --kill-others-on-fail \"yarn server\" \"yarn client\""
+    "start": "concurrently --kill-others-on-fail \"yarn server\" \"yarn client\""
   },
   "dependencies": {
     "dotenv": "^6.0.0",
