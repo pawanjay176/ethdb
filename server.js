@@ -56,7 +56,7 @@ async function writeBlockToDb(b) {
 // Init db schema and web3 object
 async function init() {
   web3 = await getWeb3();
-  db = await initializeSchema();
+  await initializeSchema();
 }
 
 // io.set('origins', '*:*');
