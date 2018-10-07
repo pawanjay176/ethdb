@@ -9,18 +9,22 @@ let web3;
 
 // Return a subscription object
 async function getSubscription () {
-  var subscription = await web3.eth.subscribe('newBlockHeaders');
-  return subscription;
+  try {
+    var subscription = await web3.eth.subscribe('newBlockHeaders');
+    return subscription;
+  } catch(err) {
+    console.log("getSubscription failed", err);
+  }
 }
 
 // Write a transaction with its receipt data into db
 async function writeTransactionToDb(transaction) {
-  let t = await web3.eth.getTransaction(transaction);
-  let r = await web3.eth.getTransactionReceipt(t.hash);
-  let sql = `INSERT INTO transaction(transactionHash,nonce,blockhash,blockNumber,transactionIndex,fromAdd,toAdd,value,gasPrice,gas,input,status,contractAddress,cumulativeGasUsed,gasUsed)
-           VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
-  let vals = [t.hash, t.nonce, t.blockHash, t.blockNumber, t.transactionIndex, t.from, t.to, t.value, t.gasPrice, t.gas, t.input, r.status, r.contractAddress, r.cumulativeGasUsed, r.gasUsed];
   try {
+    let t = await web3.eth.getTransaction(transaction);
+    let r = await web3.eth.getTransactionReceipt(t.hash);
+    let sql = `INSERT INTO transaction(transactionHash,nonce,blockhash,blockNumber,transactionIndex,fromAdd,toAdd,value,gasPrice,gas,input,status,contractAddress,cumulativeGasUsed,gasUsed)
+            VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`;
+    let vals = [t.hash, t.nonce, t.blockHash, t.blockNumber, t.transactionIndex, t.from, t.to, t.value, t.gasPrice, t.gas, t.input, r.status, r.contractAddress, r.cumulativeGasUsed, r.gasUsed];
     var res = await pool.query(sql, vals);
   } catch(err) {
     console.log(err);
@@ -49,20 +53,21 @@ async function writeBlockToDb(b) {
   } catch(err) {
     console.log(err);
   }
-  b.transactions.map(t => writeTransactionToDb(t).then(console.log));
-  b.uncles.map(u => writeUnclesToDb(u, b.hash).then(console.log));
+  b.transactions.map(t => writeTransactionToDb(t).then());
+  b.uncles.map(u => writeUnclesToDb(u, b.hash).then());
 }
 
 // Init db schema and web3 object
 async function init() {
-  web3 = await getWeb3();
-  await initializeSchema();
+  try {
+    web3 = await getWeb3();
+    await initializeSchema();
+  } catch(err) {
+    console.log("init failed ", err);
+  }
 }
 
-// io.set('origins', '*:*');
-// 
-io.on('connection', async (socket) => {
-  console.log("Client Successfully Connected");
+async function getData() {
   await init();
   let subscription = await getSubscription();
   subscription.on("data", async (blockHeader) => {
@@ -73,8 +78,24 @@ io.on('connection', async (socket) => {
       await writeBlockToDb(block);
   })
   subscription.on("error", console.error);
-})
+}
+
+function main() {
+  getData()
+  .then(function() {
+    console.log("Got result");
+  }, function(err) {
+    console.log(err);
+  });
+}
+
 
 server.listen(5000, () => {
-	console.log("Backend Server is running on http://localhost:5000");
+  console.log("Backend Server is running on http://localhost:5000");
 })
+
+// start fetching only after client is connected
+io.on('connection', () => {
+  console.log("Client Successfully Connected");
+  main();
+});
