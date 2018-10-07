@@ -1,6 +1,8 @@
 {
   "name": "Blockchain-explorer",
   "version": "1.0.0",
+  "license": "MIT",
+  "author": "Pawan Dhananjay",
   "scripts": {
     "babel-node": "babel-node --presets=latest",
     "client": "cd client && yarn start",
